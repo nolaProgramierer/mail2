@@ -32,12 +32,35 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+
+  fetch(`/emails/${mailbox}`)
+    .then(response => response.json())
+    .then(emails => {
+      for (let i = 0; i < emails.length; i++) {
+
+        console.log(emails[i]);
+
+        var email_div = document.createElement('div');
+        email_div.className = 'list-email';
+
+        if (emails[i].read === 'True') {
+          email_div.classList.add('read-email');
+        }
+
+        email_div.innerHTML = `From: ${emails[i].sender} Subj: ${emails[i].subject} Sent at: ${emails[i].timestamp}`;
+
+        //Add click eventlistener calling a view email functgion
+
+        document.querySelector('#emails-view').append(email_div);
+      }
+    });
 }
 
 function send_mail(e) {
-  send_recipients = document.querySelector('#compose-recipients').value;
-  send_subject = document.querySelector('#compose-subject').value;
-  send_body = document.querySelector('#compose-body').value;
+  var send_recipients = document.querySelector('#compose-recipients').value;
+  var send_subject = document.querySelector('#compose-subject').value;
+  var send_body = document.querySelector('#compose-body').value;
 
   fetch('/emails', {
     method: 'POST',
@@ -49,9 +72,9 @@ function send_mail(e) {
   })
     .then(response => response.json())
     .then(result => {
-      console.log(result)
-    })
+      console.log(result);
+    });
 
-  e.preventDefault()
+  e.preventDefault();
   load_mailbox('sent');
 }

@@ -1,3 +1,9 @@
 textarea {
     min-height: 400px;
 }
+.list-email {
+    border: 1px solid black;
+}
+.read-email {
+    background-color: lightgrey;
+}
