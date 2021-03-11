@@ -51,10 +51,16 @@ function load_mailbox(mailbox) {
         }
         // Add HTML to div
         email_div.innerHTML = `From: ${emails[i].sender} Subj: ${emails[i].subject} Sent at: ${emails[i].timestamp}`;
-        // Add event listener to element with closure
+        // Add event listener to element for show individual email with closure
         (function () {
           email_div.addEventListener('click', function () {
             show_email(emails[i].id);
+          }, false);
+        }());
+        // Add event listener to element for reply function with closure
+        (function () {
+          document.querySelector('#reply-button').addEventListener('click', function () {
+            reply_to_email(emails[i].id);
           }, false);
         }());
         // Append to Inbox view
@@ -164,6 +170,7 @@ function archive_email(id) {
   console.log("email archived");
 }
 
+
 // Unarchive email
 function unarchive_email(id) {
   fetch(`/emails/${id}`, {
@@ -175,3 +182,25 @@ function unarchive_email(id) {
   load_mailbox('inbox');
   console.log("email unarchived");
 }
+
+
+// Reply to email
+function reply_to_email(id) {
+  // Show email view
+  compose_email();
+  document.querySelector('#email-view').style.display = 'none';
+
+  fetch(`/emails/${id}`)
+    .then(response => response.json())
+    .then(email => {
+      let body_msg = `On ${email.timestamp} ${email.sender} wrote: `;
+      // Check for existing 'Re:' in Subject field
+      if (document.querySelector('#compose-subject').value.slice(0, 3) === 'Re:') {
+        document.querySelector('#compose-subject').value = email.subject;
+      }
+      document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+      document.querySelector('#compose-recipients').value = email.sender;
+      document.querySelector('#compose-body').value = body_msg + email.body;
+    });
+}
+
