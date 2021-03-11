@@ -51,17 +51,25 @@ function load_mailbox(mailbox) {
         }
         // Add HTML to div
         email_div.innerHTML = `From: ${emails[i].sender} Subj: ${emails[i].subject} Sent at: ${emails[i].timestamp}`;
-        // Append to Inbox view
         // Add event listener to element with closure
         (function () {
           email_div.addEventListener('click', function () {
             show_email(emails[i].id);
           }, false);
         }());
+        // Append to Inbox view
         document.querySelector('#emails-view').append(email_div);
-
       }
     });
+
+  /*
+   Alternate way to assign eventListener
+  document.querySelectorAll('.list-email').forEach(function (node, index) {
+    node.addEventListener('click', function () {
+      show_email(index);
+    });
+  });
+  */
 }
 
 function send_mail(e) {
@@ -101,16 +109,39 @@ function show_email(id) {
       document.querySelector('#emails-view').style.display = 'none';
       document.querySelector('#email-view').style.display = "block";
 
-      document.querySelector('#email-from').innerHTML += sender;
-      document.querySelector('#email-to').innerHTML += recipients;
-      document.querySelector('#email-subject').innerHTML += subject;
-      document.querySelector('#email-timestamp').innerHTML += timestamp;
+      document.querySelector('#email-from').innerHTML = `From: ${sender}`;
+      document.querySelector('#email-to').innerHTML = `To: ${recipients}`;
+      document.querySelector('#email-subject').innerHTML = `Re: ${subject}`;
+      document.querySelector('#email-timestamp').innerHTML = `Timestamp: ${timestamp}`;
       document.querySelector('#email-body').innerHTML = body;
+
+      // Mark email as read if not read
+      if (!email.read) {
+        mark_as_read(id);
+      }
+
+      // Hide unarchive button is email not archived
+      if (email.archived) {
+        document.querySelector('#archive').style.visibility = 'hidden';
+        document.querySelector('#unarchive').style.visibility = 'visible';
+        // Add eventlistener to unarchive button
+        document.querySelector('#unarchive').addEventListener('click', function () {
+          unarchive_email(id);
+        });
+      } else if (!email.archived) {
+        // Hide unarchive button
+        document.querySelector('#unarchive').style.visibility = 'hidden';
+        document.querySelector('#archive').style.visibility = 'visible';
+        // Archive email onclick
+        document.querySelector('#archive').addEventListener('click', function () {
+          archive_email(id);
+        });
+      }
     });
-  // Mark email as read
-  mark_as_read(id);
 }
 
+
+// Change email 'read' attribute
 function mark_as_read(id) {
   fetch(`/emails/${id}`, {
     method: 'PUT',
@@ -118,5 +149,29 @@ function mark_as_read(id) {
       read: true,
     })
   });
+}
 
+
+// Change email 'archive' attribute 
+function archive_email(id) {
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: true
+    })
+  });
+  load_mailbox('inbox');
+  console.log("email archived");
+}
+
+// Unarchive email
+function unarchive_email(id) {
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: false
+    })
+  });
+  load_mailbox('inbox');
+  console.log("email unarchived");
 }
