@@ -25,6 +25,7 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
+
 function load_mailbox(mailbox) {
   'use strict';
   // Show the mailbox and hide other views
@@ -39,24 +40,23 @@ function load_mailbox(mailbox) {
     .then(response => response.json())
     .then(emails => {
       for (let i = 0; i < emails.length; i++) {
-
-        console.log(emails[i]);
-
         // Create div for email
         var email_div = document.createElement('div');
         email_div.className = 'list-email';
-        // If email attribute == read, change background color
+        // If email attribute == 'read', change background color
         if (emails[i].read === true) {
           email_div.classList.add('read-email');
         }
         // Add HTML to div
         email_div.innerHTML = `From: ${emails[i].sender} Subj: ${emails[i].subject} Sent at: ${emails[i].timestamp}`;
+
         // Add event listener to element for show individual email with closure
         (function () {
           email_div.addEventListener('click', function () {
             show_email(emails[i].id);
           }, false);
         }());
+
         // Add event listener to element for reply function with closure
         (function () {
           document.querySelector('#reply-button').addEventListener('click', function () {
@@ -102,6 +102,9 @@ function send_mail(e) {
 
 // Display email from inbox
 function show_email(id) {
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = "block";
+
   // Get email by email id
   fetch(`/emails/${id}`)
     .then(response => response.json())
@@ -112,8 +115,7 @@ function show_email(id) {
       var timestamp = email.timestamp;
       var body = email.body;
 
-      document.querySelector('#emails-view').style.display = 'none';
-      document.querySelector('#email-view').style.display = "block";
+
 
       document.querySelector('#email-from').innerHTML = `From: ${sender}`;
       document.querySelector('#email-to').innerHTML = `To: ${recipients}`;
@@ -125,7 +127,6 @@ function show_email(id) {
       if (!email.read) {
         mark_as_read(id);
       }
-
       // Hide unarchive button is email not archived
       if (email.archived) {
         document.querySelector('#archive').style.visibility = 'hidden';
@@ -158,7 +159,7 @@ function mark_as_read(id) {
 }
 
 
-// Change email 'archive' attribute 
+// Change email 'archive' attribute
 function archive_email(id) {
   fetch(`/emails/${id}`, {
     method: 'PUT',
